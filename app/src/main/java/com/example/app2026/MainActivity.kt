@@ -1,9 +1,13 @@
 package com.example.app2026
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,7 +28,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -98,6 +105,64 @@ fun MovieList(movieList: List<Movie>, modifier: Modifier = Modifier) {
 }
 
 @Composable
+fun MovieGenres(genres: List<String>, modifier: Modifier = Modifier) {
+    if (genres.isEmpty()) return
+
+    Text(
+        text = genres.joinToString(", "),
+        style = MaterialTheme.typography.bodySmall,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun MovieHomepageLink(homepage: String, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+
+    if (homepage.isBlank()) return
+
+    Text(
+        text = "Homepage",
+        color = Color.Blue,
+        textDecoration = TextDecoration.Underline,
+        style = MaterialTheme.typography.bodySmall,
+        modifier = modifier.clickable {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(homepage))
+            context.startActivity(intent)
+        }
+    )
+}
+
+@Composable
+fun MovieImdbLink(imdbId: String, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+
+    if (imdbId.isBlank()) return
+
+    val imdbUrl = "https://www.imdb.com/title/$imdbId/"
+
+    Text(
+        text = "Open in IMDb",
+        color = Color.Blue,
+        textDecoration = TextDecoration.Underline,
+        style = MaterialTheme.typography.bodySmall,
+        modifier = modifier.clickable {
+            val imdbAppIntent = Intent(Intent.ACTION_VIEW, Uri.parse(imdbUrl)).apply {
+                setPackage("com.imdb.mobile")
+            }
+
+            val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse(imdbUrl))
+
+            try {
+                context.startActivity(imdbAppIntent)
+            } catch (e: ActivityNotFoundException) {
+                context.startActivity(webIntent)
+            }
+        }
+    )
+}
+
+@Composable
 fun MovieListItemCard(movie: Movie, modifier: Modifier = Modifier) {
     Card(modifier = modifier) {
         Row {
@@ -123,6 +188,15 @@ fun MovieListItemCard(movie: Movie, modifier: Modifier = Modifier) {
                     text = movie.releaseDate,
                     style = MaterialTheme.typography.bodySmall
                 )
+                Spacer(modifier = Modifier.size(8.dp))
+
+                MovieGenres(genres = movie.genres)
+                Spacer(modifier = Modifier.size(8.dp))
+
+                MovieHomepageLink(homepage = movie.homepage)
+                Spacer(modifier = Modifier.size(8.dp))
+
+                MovieImdbLink(imdbId = movie.imdbId)
                 Spacer(modifier = Modifier.size(8.dp))
 
                 Text(
