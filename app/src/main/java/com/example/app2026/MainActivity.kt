@@ -47,6 +47,24 @@ import com.example.app2026.models.Movie
 import com.example.app2026.ui.theme.App2026Theme
 import com.example.app2026.utils.Constants
 import androidx.core.net.toUri
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.media3.common.MediaItem
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
+import com.example.app2026.models.MovieReview
+import com.example.app2026.models.MovieVideo
+import com.example.app2026.repository.TmdbRepository
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,6 +93,10 @@ fun MovieDBApp(modifier: Modifier = Modifier) {
             MovieListScreen(navController)
         }
 
+        composable("movie_grid") {
+            MovieGridScreen(navController)
+        }
+
         composable(
             route = "movie_detail/{movieId}",
             arguments = listOf(navArgument("movieId") { type = NavType.LongType })
@@ -83,8 +105,12 @@ fun MovieDBApp(modifier: Modifier = Modifier) {
             MovieDetailScreen(navController = navController, movieId = movieId)
         }
 
-        composable("third_screen") {
-            ThirdScreen(navController)
+        composable(
+            route = "movie_media/{movieId}",
+            arguments = listOf(navArgument("movieId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val movieId = backStackEntry.arguments?.getLong("movieId") ?: 0L
+            MovieMediaScreen(navController = navController, movieId = movieId)
         }
     }
 }
@@ -93,10 +119,10 @@ fun MovieDBApp(modifier: Modifier = Modifier) {
 fun MovieListScreen(navController: NavHostController) {
     Column {
         Button(
-            onClick = { navController.navigate("third_screen") },
+            onClick = { navController.navigate("movie_grid") },
             modifier = Modifier.padding(8.dp)
         ) {
-            Text("Go to Third Screen")
+            Text("Open Grid Screen")
         }
 
         MovieList(
@@ -258,8 +284,16 @@ fun MovieDetailScreen(navController: NavHostController, movieId: Long) {
             .padding(16.dp)
     ) {
         item {
-            Button(onClick = { navController.popBackStack() }) {
-                Text("Go Back")
+            Row {
+                Button(onClick = { navController.popBackStack() }) {
+                    Text("Go Back")
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(onClick = { navController.navigate("movie_media/${movie.id}") }) {
+                    Text("Reviews & Videos")
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -340,5 +374,264 @@ fun ThirdScreen(navController: NavHostController) {
 fun GreetingPreview() {
     App2026Theme {
         MovieDBApp()
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun MovieGridScreen(navController: NavHostController) {
+    val movies = Movies().getMovies()
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        Button(
+            onClick = { navController.popBackStack() },
+            modifier = Modifier.padding(8.dp)
+        ) {
+            Text("Back")
+        }
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 8.dp)
+        ) {
+            items(movies) { movie ->
+                Card(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .clickable {
+                            navController.navigate("movie_detail/${movie.id}")
+                        }
+                ) {
+                    Column {
+                        AsyncImage(
+                            model = Constants.POSTER_IMAGE_BASE_URL +
+                                    Constants.POSTER_IMAGE_BASE_WIDTH +
+                                    movie.posterPath,
+                            contentDescription = movie.title,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(220.dp),
+                            contentScale = ContentScale.Crop
+                        )
+
+                        Column(modifier = Modifier.padding(8.dp)) {
+                            Text(
+                                text = movie.title,
+                                style = MaterialTheme.typography.titleMedium,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            Text(
+                                text = movie.releaseDate,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MovieMediaScreen(navController: NavHostController, movieId: Long) {
+    val repository = remember { TmdbRepository() }
+    var reviews by remember { mutableStateOf<List<MovieReview>>(emptyList()) }
+    var videos by remember { mutableStateOf<List<MovieVideo>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(movieId) {
+        isLoading = true
+        errorMessage = null
+        try {
+            reviews = repository.getReviews(movieId)
+            videos = repository.getVideos(movieId)
+        } catch (e: Exception) {
+            errorMessage = e.message ?: "Failed to load data"
+        } finally {
+            isLoading = false
+        }
+    }
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        item {
+            Button(onClick = { navController.popBackStack() }) {
+                Text("Go Back")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Embedded Video",
+                style = MaterialTheme.typography.headlineSmall
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            EmbeddedVideoPlayer(
+                videoUrl = "https://storage.googleapis.com/exoplayer-test-media-0/play.mp3"
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "Reviews",
+                style = MaterialTheme.typography.headlineSmall
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        if (isLoading) {
+            item { Text("Loading...") }
+        }
+
+        errorMessage?.let { message ->
+            item { Text("Error: $message") }
+        }
+
+        item {
+            LazyRow {
+                items(reviews) { review ->
+                    ReviewCard(review = review)
+                }
+            }
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "Videos",
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        item {
+            LazyRow {
+                items(videos) { video ->
+                    VideoCard(video = video)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ReviewCard(review: MovieReview) {
+    Card(
+        modifier = Modifier
+            .width(280.dp)
+            .padding(end = 12.dp)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(
+                text = review.author,
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = review.content,
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 6,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+fun VideoCard(video: MovieVideo) {
+    val context = LocalContext.current
+
+    Card(
+        modifier = Modifier
+            .width(260.dp)
+            .padding(end = 12.dp)
+            .clickable {
+                if (video.site.equals("YouTube", ignoreCase = true) && video.key.isNotBlank()) {
+                    val appIntent = Intent(
+                        Intent.ACTION_VIEW,
+                        "vnd.youtube:${video.key}".toUri()
+                    )
+                    val webIntent = Intent(
+                        Intent.ACTION_VIEW,
+                        "https://www.youtube.com/watch?v=${video.key}".toUri()
+                    )
+
+                    try {
+                        context.startActivity(appIntent)
+                    } catch (_: ActivityNotFoundException) {
+                        context.startActivity(webIntent)
+                    }
+                }
+            }
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(
+                text = video.name,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Site: ${video.site}",
+                style = MaterialTheme.typography.bodySmall
+            )
+
+            Text(
+                text = "Type: ${video.type}",
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+    }
+}
+
+@Composable
+fun EmbeddedVideoPlayer(videoUrl: String) {
+    val context = LocalContext.current
+
+    val exoPlayer = remember(videoUrl) {
+        ExoPlayer.Builder(context).build().apply {
+            setMediaItem(MediaItem.fromUri(videoUrl))
+            prepare()
+            playWhenReady = false
+        }
+    }
+
+    AndroidView(
+        factory = {
+            PlayerView(it).apply {
+                player = exoPlayer
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(220.dp)
+    )
+
+    LaunchedEffect(Unit) {
+        // no-op
+    }
+
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose {
+            exoPlayer.release()
+        }
     }
 }
