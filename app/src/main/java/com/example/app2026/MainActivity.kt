@@ -263,7 +263,7 @@ fun MovieListItemCard(
         }
     }
 }
-
+// Second Page
 @Composable
 fun MovieDetailScreen(navController: NavHostController, movieId: Long) {
     val movie = Movies().getMovies().find { it.id == movieId }
