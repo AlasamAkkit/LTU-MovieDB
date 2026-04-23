@@ -6,15 +6,15 @@ class Movies {
     fun getMovies(): List<Movie>{
         return listOf(
             Movie(
-                553717,
-                "Creed III",
-                "/nvwxOPoa4HVjeZk0PgHHbVCS3KL.jpg",
-                "/2hscwDISGOGGcHgn2ttogcnlWvl.jpg",
-                "2023-03-01",
-                "After dominating the boxing world, Adonis Creed has thrived in his career and family life. When a childhood friend and former boxing prodigy, Damian Anderson, resurfaces after serving a long sentence in prison, he is eager to prove that he deserves his shot in the ring. The face-off between former friends is more than just a fight. To settle the score, Adonis must put his future on the line to battle Damian — a fighter with nothing to lose.",
+                9806,
+                "The Incredibles",
+                "/2LqaLgk4Z226KkgPJuiOQ58wvrm.jpg",
+                "/8eRscFbRYl681zDfkjv1jjW1KAA.jpg",
+                "2004-10-27",
+                "Bob Parr has given up his superhero days to log in time as an insurance adjuster and raise his three children with his formerly heroic wife in suburbia. But when he receives a mysterious assignment, it's time to get back into costume.",
                 listOf("Drama", "Action"),
-                "https://www.mgmstudios.com/creed-iii",
-                "tt11145118"
+                "https://www.pixar.com/the-incredibles",
+                "tt0317705"
             ),
             Movie(
                 76600,
