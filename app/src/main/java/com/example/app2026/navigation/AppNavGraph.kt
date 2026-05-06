@@ -5,17 +5,20 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.app2026.screens.FavoritesScreen
 import com.example.app2026.screens.MovieDetailScreen
 import com.example.app2026.screens.MovieGridScreen
 import com.example.app2026.screens.MovieListScreen
 import com.example.app2026.screens.MovieMediaScreen
+import com.example.app2026.viewmodel.FavoritesViewModel
 import com.example.app2026.viewmodel.MovieViewModel
 
 @Composable
 fun AppNavGraph(
-    viewModel: MovieViewModel,
+    movieViewModel: MovieViewModel,
+    favoritesViewModel: FavoritesViewModel,
     modifier: Modifier = Modifier
 ) {
     val navController = rememberNavController()
@@ -26,11 +29,24 @@ fun AppNavGraph(
         modifier = modifier
     ) {
         composable("movie_list") {
-            MovieListScreen(navController, viewModel)
+            MovieListScreen(
+                navController = navController,
+                movieViewModel = movieViewModel
+            )
         }
 
         composable("movie_grid") {
-            MovieGridScreen(navController, viewModel)
+            MovieGridScreen(
+                navController = navController,
+                movieViewModel = movieViewModel
+            )
+        }
+
+        composable("favorites") {
+            FavoritesScreen(
+                navController = navController,
+                favoritesViewModel = favoritesViewModel
+            )
         }
 
         composable(
@@ -38,7 +54,12 @@ fun AppNavGraph(
             arguments = listOf(navArgument("movieId") { type = NavType.LongType })
         ) { backStackEntry ->
             val movieId = backStackEntry.arguments?.getLong("movieId") ?: 0L
-            MovieDetailScreen(navController, viewModel, movieId)
+            MovieDetailScreen(
+                navController = navController,
+                movieId = movieId,
+                movieViewModel = movieViewModel,
+                favoritesViewModel = favoritesViewModel
+            )
         }
 
         composable(
@@ -46,7 +67,11 @@ fun AppNavGraph(
             arguments = listOf(navArgument("movieId") { type = NavType.LongType })
         ) { backStackEntry ->
             val movieId = backStackEntry.arguments?.getLong("movieId") ?: 0L
-            MovieMediaScreen(navController, viewModel, movieId)
+            MovieMediaScreen(
+                navController = navController,
+                movieId = movieId,
+                viewModel = movieViewModel
+            )
         }
     }
 }

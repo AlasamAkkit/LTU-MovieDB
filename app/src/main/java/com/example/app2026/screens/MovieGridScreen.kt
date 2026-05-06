@@ -3,9 +3,9 @@ package com.example.app2026.screens
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -22,18 +22,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import com.example.app2026.components.NoConnectionState
 import com.example.app2026.utils.Constants
 import com.example.app2026.viewmodel.MovieViewModel
 
 @Composable
 fun MovieGridScreen(
     navController: NavHostController,
-    viewModel: MovieViewModel
+    movieViewModel: MovieViewModel
 ) {
-    val selectedViewType by viewModel.selectedViewType.collectAsState()
-    val movies by viewModel.movies.collectAsState()
-    val isConnected by viewModel.isConnected.collectAsState()
+    val movies by movieViewModel.movies.collectAsState(initial = emptyList())
 
     Column(modifier = Modifier.fillMaxSize()) {
         Button(
@@ -43,67 +40,44 @@ fun MovieGridScreen(
             Text("Back")
         }
 
-        MovieTypeSelector(
-            selectedType = selectedViewType,
-            onTypeSelected = viewModel::selectViewType
-        )
-
-        Button(
-            onClick = { viewModel.clearCachedList() },
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 8.dp)
         ) {
-            Text("Clear Cached List")
-        }
+            items(movies) { movie ->
+                Card(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .clickable {
+                            navController.navigate("movie_detail/${movie.id}")
+                        }
+                ) {
+                    Column {
+                        AsyncImage(
+                            model = Constants.POSTER_IMAGE_BASE_URL +
+                                    Constants.POSTER_IMAGE_BASE_WIDTH +
+                                    movie.posterPath,
+                            contentDescription = movie.title,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(220.dp),
+                            contentScale = ContentScale.Crop
+                        )
 
-        if (movies.isEmpty() && !isConnected) {
-            NoConnectionState(
-                onRetryClick = { viewModel.retryCurrentSelection() }
-            )
-        } else if (movies.isEmpty()) {
-            Text(
-                text = "Loading movies...",
-                modifier = Modifier.padding(16.dp)
-            )
-        } else {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 8.dp)
-            ) {
-                items(movies) { movie ->
-                    Card(
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .clickable {
-                                navController.navigate("movie_detail/${movie.id}")
-                            }
-                    ) {
-                        Column {
-                            AsyncImage(
-                                model = Constants.POSTER_IMAGE_BASE_URL +
-                                        Constants.POSTER_IMAGE_BASE_WIDTH +
-                                        movie.posterPath,
-                                contentDescription = movie.title,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(220.dp),
-                                contentScale = ContentScale.Crop
+                        Column(modifier = Modifier.padding(8.dp)) {
+                            Text(
+                                text = movie.title,
+                                style = MaterialTheme.typography.titleMedium,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
                             )
 
-                            Column(modifier = Modifier.padding(8.dp)) {
-                                Text(
-                                    text = movie.title,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-
-                                Text(
-                                    text = movie.releaseDate,
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
+                            Text(
+                                text = movie.releaseDate,
+                                style = MaterialTheme.typography.bodySmall
+                            )
                         }
                     }
                 }

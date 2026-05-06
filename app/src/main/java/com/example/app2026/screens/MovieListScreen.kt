@@ -1,13 +1,13 @@
 package com.example.app2026.screens
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.app2026.components.MovieListItemCard
-import com.example.app2026.components.NoConnectionState
 import com.example.app2026.models.Movie
 import com.example.app2026.models.MovieListType
 import com.example.app2026.viewmodel.MovieViewModel
@@ -23,40 +22,55 @@ import com.example.app2026.viewmodel.MovieViewModel
 @Composable
 fun MovieListScreen(
     navController: NavHostController,
-    viewModel: MovieViewModel
+    movieViewModel: MovieViewModel
 ) {
-    val selectedViewType by viewModel.selectedViewType.collectAsState()
-    val movies by viewModel.movies.collectAsState()
-    val isConnected by viewModel.isConnected.collectAsState()
+    val movies by movieViewModel.movies.collectAsState()
+    val selectedViewType by movieViewModel.selectedViewType.collectAsState()
+    val isConnected by movieViewModel.isConnected.collectAsState()
 
     Column {
-        Button(
-            onClick = { navController.navigate("movie_grid") },
-            modifier = Modifier.padding(8.dp)
-        ) {
-            Text("Open Grid Screen")
+        Row(modifier = Modifier.padding(8.dp)) {
+            Button(
+                onClick = { movieViewModel.selectViewType(MovieListType.POPULAR) },
+                modifier = Modifier.padding(end = 8.dp)
+            ) {
+                Text("Popular")
+            }
+
+            Button(
+                onClick = { movieViewModel.selectViewType(MovieListType.TOP_RATED) },
+                modifier = Modifier.padding(end = 8.dp)
+            ) {
+                Text("Top Rated")
+            }
         }
 
-        MovieTypeSelector(
-            selectedType = selectedViewType,
-            onTypeSelected = viewModel::selectViewType
+        Row(modifier = Modifier.padding(horizontal = 8.dp)) {
+            Button(
+                onClick = { navController.navigate("movie_grid") },
+                modifier = Modifier.padding(end = 8.dp)
+            ) {
+                Text("Open Grid Screen")
+            }
+
+            Button(
+                onClick = { navController.navigate("favorites") }
+            ) {
+                Text("Favorites")
+            }
+        }
+
+        Text(
+            text = "Current category: ${selectedViewType.displayName}",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(8.dp)
         )
 
-        Button(
-            onClick = { viewModel.clearCachedList() },
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        ) {
-            Text("Clear Cached List")
-        }
-
-        if (movies.isEmpty() && !isConnected) {
-            NoConnectionState(
-                onRetryClick = { viewModel.retryCurrentSelection() }
-            )
-        } else if (movies.isEmpty()) {
+        if (!isConnected && movies.isEmpty()) {
             Text(
-                text = "Loading movies...",
-                modifier = Modifier.padding(16.dp)
+                text = "No internet connection and no cached movies for this category.",
+                modifier = Modifier.padding(16.dp),
+                style = MaterialTheme.typography.bodyLarge
             )
         } else {
             MovieList(
@@ -82,29 +96,6 @@ fun MovieList(
                 onClick = { onMovieClick(movie) },
                 modifier = Modifier.padding(8.dp)
             )
-        }
-    }
-}
-
-@Composable
-fun MovieTypeSelector(
-    selectedType: MovieListType,
-    onTypeSelected: (MovieListType) -> Unit
-) {
-    SingleChoiceSegmentedButtonRow(
-        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-    ) {
-        MovieListType.entries.forEachIndexed { index, type ->
-            SegmentedButton(
-                selected = selectedType == type,
-                onClick = { onTypeSelected(type) },
-                shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(
-                    index = index,
-                    count = MovieListType.entries.size
-                )
-            ) {
-                Text(type.displayName)
-            }
         }
     }
 }

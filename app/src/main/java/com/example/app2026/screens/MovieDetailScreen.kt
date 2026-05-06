@@ -24,34 +24,26 @@ import coil.compose.AsyncImage
 import com.example.app2026.components.MovieGenres
 import com.example.app2026.components.MovieHomepageLink
 import com.example.app2026.components.MovieImdbLink
-import com.example.app2026.components.NoConnectionState
 import com.example.app2026.utils.Constants
+import com.example.app2026.viewmodel.FavoritesViewModel
 import com.example.app2026.viewmodel.MovieViewModel
 
 @Composable
 fun MovieDetailScreen(
     navController: NavHostController,
-    viewModel: MovieViewModel,
-    movieId: Long
+    movieId: Long,
+    movieViewModel: MovieViewModel,
+    favoritesViewModel: FavoritesViewModel
 ) {
-    val movie by viewModel.observeMovie(movieId).collectAsState(initial = null)
-    val isConnected by viewModel.isConnected.collectAsState()
-
-    if (movie == null && !isConnected) {
-        NoConnectionState(
-            title = "Movie detail unavailable",
-            message = "This movie is not in the currently cached list.",
-            onRetryClick = { viewModel.retryCurrentSelection() }
-        )
-        return
-    }
+    val movie by movieViewModel.observeMovie(movieId).collectAsState(initial = null)
+    val isFavorite by favoritesViewModel.isFavorite(movieId).collectAsState(initial = false)
 
     if (movie == null) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text("Loading movie detail...")
+            Text("Movie not found")
         }
         return
     }
@@ -76,6 +68,20 @@ fun MovieDetailScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            Button(
+                onClick = {
+                    if (isFavorite) {
+                        favoritesViewModel.removeFavoriteById(movie!!.id)
+                    } else {
+                        favoritesViewModel.addFavorite(movie!!)
+                    }
+                }
+            ) {
+                Text(if (isFavorite) "Remove from Favorites" else "Add to Favorites")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             AsyncImage(
                 model = Constants.POSTER_IMAGE_BASE_URL +
                         Constants.POSTER_IMAGE_BASE_WIDTH +
@@ -88,17 +94,37 @@ fun MovieDetailScreen(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = movie!!.title, style = MaterialTheme.typography.headlineMedium)
+
+            Text(
+                text = movie!!.title,
+                style = MaterialTheme.typography.headlineMedium
+            )
+
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = movie!!.releaseDate, style = MaterialTheme.typography.bodyMedium)
+
+            Text(
+                text = movie!!.releaseDate,
+                style = MaterialTheme.typography.bodyMedium
+            )
+
             Spacer(modifier = Modifier.height(8.dp))
+
             MovieGenres(genres = movie!!.genres)
+
             Spacer(modifier = Modifier.height(8.dp))
+
             MovieHomepageLink(homepage = movie!!.homepage)
+
             Spacer(modifier = Modifier.height(8.dp))
+
             MovieImdbLink(imdbId = movie!!.imdbId)
+
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = movie!!.overview, style = MaterialTheme.typography.bodyLarge)
+
+            Text(
+                text = movie!!.overview,
+                style = MaterialTheme.typography.bodyLarge
+            )
         }
     }
 }

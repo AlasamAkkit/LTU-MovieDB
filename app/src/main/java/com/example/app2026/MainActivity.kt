@@ -11,11 +11,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.example.app2026.navigation.AppNavGraph
 import com.example.app2026.ui.theme.App2026Theme
+import com.example.app2026.viewmodel.FavoritesViewModel
 import com.example.app2026.viewmodel.MovieViewModel
 
 class MainActivity : ComponentActivity() {
 
     private val movieViewModel: MovieViewModel by viewModels()
+    private val favoritesViewModel: FavoritesViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,7 +26,8 @@ class MainActivity : ComponentActivity() {
             App2026Theme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     AppNavGraph(
-                        viewModel = movieViewModel,
+                        movieViewModel = movieViewModel,
+                        favoritesViewModel = favoritesViewModel,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
