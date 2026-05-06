@@ -5,15 +5,19 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.navigation.compose.rememberNavController
 import com.example.app2026.screens.MovieDetailScreen
 import com.example.app2026.screens.MovieGridScreen
 import com.example.app2026.screens.MovieListScreen
 import com.example.app2026.screens.MovieMediaScreen
+import com.example.app2026.viewmodel.MovieViewModel
 
 @Composable
-fun AppNavGraph(modifier: Modifier = Modifier) {
+fun AppNavGraph(
+    viewModel: MovieViewModel,
+    modifier: Modifier = Modifier
+) {
     val navController = rememberNavController()
 
     NavHost(
@@ -22,11 +26,11 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
         modifier = modifier
     ) {
         composable("movie_list") {
-            MovieListScreen(navController)
+            MovieListScreen(navController, viewModel)
         }
 
         composable("movie_grid") {
-            MovieGridScreen(navController)
+            MovieGridScreen(navController, viewModel)
         }
 
         composable(
@@ -34,7 +38,7 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
             arguments = listOf(navArgument("movieId") { type = NavType.LongType })
         ) { backStackEntry ->
             val movieId = backStackEntry.arguments?.getLong("movieId") ?: 0L
-            MovieDetailScreen(navController, movieId)
+            MovieDetailScreen(navController, viewModel, movieId)
         }
 
         composable(
@@ -42,7 +46,7 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
             arguments = listOf(navArgument("movieId") { type = NavType.LongType })
         ) { backStackEntry ->
             val movieId = backStackEntry.arguments?.getLong("movieId") ?: 0L
-            MovieMediaScreen(navController, movieId)
+            MovieMediaScreen(navController, viewModel, movieId)
         }
     }
 }

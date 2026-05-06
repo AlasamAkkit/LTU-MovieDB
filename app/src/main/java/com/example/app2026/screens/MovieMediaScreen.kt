@@ -24,11 +24,14 @@ import com.example.app2026.components.ReviewCard
 import com.example.app2026.components.VideoCard
 import com.example.app2026.models.MovieReview
 import com.example.app2026.models.MovieVideo
-import com.example.app2026.repository.TmdbRepository
+import com.example.app2026.viewmodel.MovieViewModel
 
 @Composable
-fun MovieMediaScreen(navController: NavHostController, movieId: Long) {
-    val repository = remember { TmdbRepository() }
+fun MovieMediaScreen(
+    navController: NavHostController,
+    viewModel: MovieViewModel,
+    movieId: Long
+) {
     var reviews by remember { mutableStateOf<List<MovieReview>>(emptyList()) }
     var videos by remember { mutableStateOf<List<MovieVideo>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -38,8 +41,8 @@ fun MovieMediaScreen(navController: NavHostController, movieId: Long) {
         isLoading = true
         errorMessage = null
         try {
-            reviews = repository.getReviews(movieId)
-            videos = repository.getVideos(movieId)
+            reviews = viewModel.getReviews(movieId)
+            videos = viewModel.getVideos(movieId)
         } catch (e: Exception) {
             errorMessage = e.message ?: "Failed to load data"
         } finally {
@@ -69,8 +72,6 @@ fun MovieMediaScreen(navController: NavHostController, movieId: Long) {
             EmbeddedVideoPlayer(
                 videoUrl = "https://test-videos.co.uk/vids/bigbuckbunny/mp4/av1/360/Big_Buck_Bunny_360_10s_1MB.mp4"
             )
-
-            Spacer(modifier = Modifier.height(24.dp))
 
             Spacer(modifier = Modifier.height(24.dp))
 

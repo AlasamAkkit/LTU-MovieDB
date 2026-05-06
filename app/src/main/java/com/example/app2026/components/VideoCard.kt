@@ -55,8 +55,16 @@ fun VideoCard(video: MovieVideo) {
             )
 
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Site: ${video.site}", style = MaterialTheme.typography.bodySmall)
-            Text(text = "Type: ${video.type}", style = MaterialTheme.typography.bodySmall)
+
+            Text(
+                text = "Site: ${video.site}",
+                style = MaterialTheme.typography.bodySmall
+            )
+
+            Text(
+                text = "Type: ${video.type}",
+                style = MaterialTheme.typography.bodySmall
+            )
         }
     }
 }

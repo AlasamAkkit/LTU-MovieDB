@@ -42,16 +42,27 @@ fun MovieListItemCard(
             )
 
             Column(modifier = Modifier.padding(8.dp)) {
-                Text(text = movie.title, style = MaterialTheme.typography.headlineSmall)
+                Text(
+                    text = movie.title,
+                    style = MaterialTheme.typography.headlineSmall
+                )
                 Spacer(modifier = Modifier.size(8.dp))
-                Text(text = movie.releaseDate, style = MaterialTheme.typography.bodySmall)
+
+                Text(
+                    text = movie.releaseDate,
+                    style = MaterialTheme.typography.bodySmall
+                )
                 Spacer(modifier = Modifier.size(8.dp))
+
                 MovieGenres(movie.genres)
                 Spacer(modifier = Modifier.size(8.dp))
+
                 MovieHomepageLink(movie.homepage)
                 Spacer(modifier = Modifier.size(8.dp))
+
                 MovieImdbLink(movie.imdbId)
                 Spacer(modifier = Modifier.size(8.dp))
+
                 Text(
                     text = movie.overview,
                     style = MaterialTheme.typography.bodySmall,

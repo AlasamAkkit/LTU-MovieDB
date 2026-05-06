@@ -13,6 +13,7 @@ object TmdbClient {
             .addHeader("Authorization", "Bearer ${BuildConfig.TMDB_BEARER_TOKEN}")
             .addHeader("accept", "application/json")
             .build()
+
         chain.proceed(request)
     }
 
